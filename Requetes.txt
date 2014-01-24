@@ -1,0 +1,100 @@
+//Question 1:
+select id_client,nom 
+from clients
+where ville='casablanca';
+
+//Question2:
+select num_com 
+from clients,commandes
+where ville='rabat';
+
+//Question3:
+select article.id_article,prix_unite,qte_stock,qte_com
+from ligne_cmd,article;
+
+//Question 4:
+
+//Question 5:
+select nom,designation,qte_com
+from clients,article,ligne_cmd,commandes
+where 
+   article.id_article=ligne_cmd.id_article
+       AND
+   ligne_cmd.num_com=commandes.num_com
+       AND
+   commandes.id_client=clients.id_client
+group by nom,designation;
+
+//Question 6:
+select article.id_article,qte_com, prix_unite*qte_com as'prix_hors_taxe'
+from article,ligne_cmd;
+
+//Question 7:
+select avg(prix_unite) as'moyenne'
+from article
+where designation like'imprimante%';
+
+//Question 8:
+select count(id_client) as'nbre_clients',ville
+from clients
+group by ville;
+
+//Question 9:
+select id_client,count(num_com)as'nbre_cmd'
+from commandes
+group by id_client
+having nbre_cmd >= 2;
+
+//Question 10:
+select id_client
+from commandes
+where date_com >='1995-07-01'
+group by id_client;
+
+//11
+//12
+//13
+
+//Question14: LE CLIENT QUI A COMMANDE TOUS LES PRODUITS
+select commandes.id_client
+from commandes
+group by id_client
+having count(*) = (select count(*) from article);
+  
+//Question15: LE CLIENT QUI A COMMANDE KIT_MULTIMEDIA ET ORDINATEUR HP
+select commandes.id_client
+from ligne_cmd,article,commandes
+where designation='Ordinateur HP' and ligne_cmd.id_article=article.id_article
+  and commandes.num_com=ligne_cmd.num_com
+ and commandes.id_client in (
+select commandes.id_client
+from ligne_cmd,article,commandes
+where designation='Ordinateur HP' and ligne_cmd.id_article=article.id_article
+  and commandes.num_com=ligne_cmd.num_com);
+
+//Question 16: L ARTICLE LE PLUS COMMANDE (QUANTITE TOTALE)
+select id_article 
+from ligne_cmd
+group by id_article
+having sum(qte_com) >=all
+         ( select sum(qte_com) from ligne_cmd group by id_article);
+
+//Question17:LES COMMANDES AVEC LEURS ARTICLES(left-join) ET SANS ARTICLES
+select commandes.num_com,id_article
+from commandes
+left join ligne_cmd
+on ligne_cmd.num_com=commandes.num_com;
+
+//Question18: LE MEILLEUR CLIENT 
+select commandes.id_client,qte_com,sum( prix_unite*qte_com )as'PRIX'
+from article,ligne_cmd,commandes
+where commandes.num_com=ligne_cmd.num_com
+    AND 
+      article.id_article=ligne_cmd.id_article
+group by commandes.id_client
+having PRIX>= all( select sum( prix_unite*qte_com )as'PRIX'
+from article,ligne_cmd,commandes
+where commandes.num_com=ligne_cmd.num_com
+    AND 
+      article.id_article=ligne_cmd.id_article
+group by commandes.id_client);
